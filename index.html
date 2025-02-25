@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналитика попапов "Ты доктор?" и цен на импланты</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --brand-color: #526d7a;
+            --accent-color: #222629;
+            --menu-text-color: #97c3d8;
+            --menu-highlight-color: #ffffff;
+            --light-brand-color: #6f8a97;
+            --very-light-brand-color: #e5ebed;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+            color: var(--accent-color);
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background-color: var(--brand-color);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: var(--menu-highlight-color);
+        }
+        h2 {
+            color: var(--menu-text-color);
+            font-weight: normal;
+            margin-top: 0;
+        }
+        .data-source {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .data-source a {
+            color: var(--menu-highlight-color);
+            text-decoration: underline;
+        }
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            justify-content: space-between;
+        }
+        .stat-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .brand-bg {
+            background-color: var(--very-light-brand-color);
+        }
+        .brand-accent-bg {
+            background-color: rgba(34, 38, 41, 0.1);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+        }
+        .brand-text {
+            color: var(--brand-color);
+        }
+        .accent-text {
+            color: var(--accent-color);
+        }
+        .menu-text {
+            color: var(--menu-text-color);
+        }
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            color: var(--brand-color);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .comparison-chart {
+            height: 400px;
+        }
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .highlight {
+            font-weight: bold;
+            color: var(--brand-color);
+        }
+        .conclusion {
+            background-color: var(--very-light-brand-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .conclusion h4 {
+            color: var(--brand-color);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        .note {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .section-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .section-footer a {
+            color: var(--brand-color);
+            text-decoration: none;
+        }
+        .section-footer a:hover {
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: var(--very-light-brand-color);
+            color: var(--brand-color);
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Аналитика конкурентов по попапам "Ты доктор?" и ценам на импланты</h1>
+            <h2>Период: 25.02.2025</h2>
+            <div class="data-source">
+                <a href="https://github.com/artemutka/dental-competitors-report" target="_blank">Исходные данные</a>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Основные показатели</h3>
+            <div class="stats-row">
+                <div class="stat-box brand-bg">
+                    <div class="stat-value brand-text">12</div>
+                    <div class="stat-label">Компаний с попапом</div>
+                </div>
+                <div class="stat-box brand-accent-bg">
+                    <div class="stat-value accent-text">22.2%</div>
+                    <div class="stat-label">Доля сайтов с попапом</div>
+                </div>
+                <div class="stat-box brand-bg">
+                    <div class="stat-value brand-text">10</div>
+                    <div class="stat-label">Компаний с попапом и имплантами</div>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-box brand-accent-bg">
+                    <div class="stat-value accent-text">38</div>
+                    <div class="stat-label">Компаний с имплантами</div>
+                </div>
+                <div class="stat-box brand-bg">
+                    <div class="stat-value brand-text">70.4%</div>
+                    <div class="stat-label">Доля компаний с имплантами</div>
+                </div>
+                <div class="stat-box brand-accent-bg">
+                    <div class="stat-value accent-text">26.3%</div>
+                    <div class="stat-label">Доля попапов среди сайтов с имплантами</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="two-columns">
+            <div class="section">
+                <h3>Наличие попапов "Ты доктор?"</h3>
+                <div class="chart-container">
+                    <canvas id="popupChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Наличие имплантов</h3>
+                <div class="chart-container">
+                    <canvas id="implantChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Взаимосвязь между попапами и имплантами</h3>
+            <div class="chart-container comparison-chart">
+                <canvas id="relationChart"></canvas>
+            </div>
+            <div class="note">
+                <p>Наблюдается относительно слабая корреляция между наличием попапа и наличием имплантов на сайте. 26.3% компаний с имплантами используют попапы для проверки профессиональной принадлежности посетителей.</p>
+            </div>
+        </div>
+        
+        <div class="two-columns">
+            <div class="section">
+                <h3>Языки попапов</h3>
+                <div class="chart-container">
+                    <canvas id="languageChart"></canvas>
+                </div>
+                <div class="note">
+                    <p>В текстах попапов встречаются следующие языки (в порядке частоты): английский, русский, испанский, итальянский.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Ключевые слова в попапах</h3>
+                <div class="chart-container">
+                    <canvas id="keywordsChart"></canvas>
+                </div>
+                <div class="note">
+                    <p>Наиболее частые ключевые слова: professional (8), dental (7), dentist (5), doctor (4), medical (3), профессионал (2), стоматолог (2), доктор (2).</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Анализ цен на импланты</h3>
+            <div class="stats-row">
+                <div class="stat-box brand-bg">
+                    <div class="stat-value brand-text">$19.25</div>
+                    <div class="stat-label">Минимальная цена</div>
+                </div>
+                <div class="stat-box brand-accent-bg">
+                    <div class="stat-value accent-text">$61.58</div>
+                    <div class="stat-label">Средняя цена</div>
+                </div>
+                <div class="stat-box brand-bg">
+                    <div class="stat-value brand-text">$126.00</div>
+                    <div class="stat-label">Максимальная цена</div>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Компания</th>
+                        <th>Цена</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>blueskybio.com</td>
+                        <td>$126.00</td>
+                    </tr>
+                    <tr>
+                        <td>bhi-implants.com</td>
+                        <td>$39.50</td>
+                    </tr>
+                    <tr>
+                        <td>bioconect.com.br</td>
+                        <td>$19.25</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="note">
+                <p>Только 3 компании (5.6%) открыто публикуют цены на импланты на своих сайтах.</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Примеры текстов попапов</h3>
+            <ul>
+                <li>
+                    <strong>На английском:</strong> "I'M A PROFESSIONAL IN THE DENTISTRY SECTOR<br>
+                    According to the prevailing laws, I hereby declare under my own responsibility to be a professional in the dentistry sector and to be authorised to view the content of this website."
+                </li>
+                <li>
+                    <strong>На русском:</strong> "Вы стоматолог?<br>
+                    В соответствии с положениями действующего законодательства я под свою ответственность заявляю, что являюсь профессионалом в стоматологической сфере и, следовательно, имею право просматривать содержимое данного веб-сайта."
+                </li>
+                <li>
+                    <strong>На испанском:</strong> "Nota Informativa<br>
+                    Este sitio web contiene información técnica de productos sanitarios odontológicos y, por lo tanto, su acceso está restringido a profesionales de este ámbito. Si es usted un paciente y está interesado en nuestras soluciones seleccione el botón correspondiente y accederá a una zona especialmente diseñada para usted."
+                </li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h3>Ключевые выводы</h3>
+            <ul>
+                <li><span class="highlight">Попапы "Ты доктор?":</span> 22.2% сайтов используют попапы для верификации профессиональной принадлежности посетителей</li>
+                <li><span class="highlight">Зависимость от наличия имплантов:</span> 26.3% компаний, предлагающих импланты, используют попапы для проверки</li>
+                <li><span class="highlight">Языковое разнообразие:</span> Попапы представлены на различных языках, что отражает международный характер рынка</li>
+                <li><span class="highlight">Доступность цен:</span> Только 5.6% компаний открыто публикуют цены на свои импланты на сайте</li>
+                <li><span class="highlight">Разброс цен:</span> Цены на импланты варьируются от $19.25 до $126.00, со средней ценой $61.58</li>
+            </ul>
+            <div class="conclusion">
+                <h4>Вывод</h4>
+                <p>Анализ показывает, что большинство компаний (70.4%) предлагают импланты, но только четверть из них (26.3%) используют попапы для подтверждения профессиональной принадлежности посетителей. Открытое ценообразование не является распространенной практикой в данной отрасли, что может свидетельствовать о стратегии привлечения клиентов через прямой контакт и индивидуальное предложение.</p>
+                <p>Тексты попапов обычно указывают на профессиональную направленность контента и требуют явного подтверждения от пользователя, что он является специалистом в стоматологической отрасли.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Данные для графиков
+        const popupData = {
+            labels: ['Сайты с попапом', 'Сайты без попапа'],
+            datasets: [{
+                data: [12, 42],
+                backgroundColor: ['#526d7a', '#97c3d8'],
+                hoverBackgroundColor: ['#455c68', '#85b2c9']
+            }]
+        };
+        
+        const implantData = {
+            labels: ['Компании с имплантами', 'Компании без имплантов'],
+            datasets: [{
+                data: [38, 16],
+                backgroundColor: ['#526d7a', '#97c3d8'],
+                hoverBackgroundColor: ['#455c68', '#85b2c9']
+            }]
+        };
+        
+        const relationData = {
+            labels: ['Попап и импланты', 'Только импланты', 'Только попап', 'Ни попапа, ни имплантов'],
+            datasets: [{
+                data: [10, 28, 2, 14],
+                backgroundColor: ['#526d7a', '#97c3d8', '#6f8a97', '#304149'],
+                hoverBackgroundColor: ['#455c68', '#85b2c9', '#5e7583', '#273540']
+            }]
+        };
+        
+        const languageData = {
+            labels: ['English', 'Russian', 'Spanish', 'Italian'],
+            datasets: [{
+                data: [7, 2, 2, 1],
+                backgroundColor: ['#526d7a', '#97c3d8', '#6f8a97', '#304149'],
+                hoverBackgroundColor: ['#455c68', '#85b2c9', '#5e7583', '#273540']
+            }]
+        };
+        
+        const keywordsData = {
+            labels: ['professional', 'dental', 'dentist', 'doctor', 'medical', 'профессионал', 'стоматолог', 'доктор'],
+            datasets: [{
+                label: 'Частота ключевых слов',
+                data: [8, 7, 5, 4, 3, 2, 2, 2],
+                backgroundColor: '#526d7a',
+                borderColor: '#455c68',
+                borderWidth: 1
+            }]
+        };
+        
+        // Инициализация графиков
+        document.addEventListener('DOMContentLoaded', function() {
+            // График наличия попапов
+            new Chart(document.getElementById('popupChart'), {
+                type: 'pie',
+                data: popupData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // График наличия имплантов
+            new Chart(document.getElementById('implantChart'), {
+                type: 'pie',
+                data: implantData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // График взаимосвязи попапов и имплантов
+            new Chart(document.getElementById('relationChart'), {
+                type: 'pie',
+                data: relationData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // График языков попапов
+            new Chart(document.getElementById('languageChart'), {
+                type: 'pie',
+                data: languageData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // График ключевых слов
+            new Chart(document.getElementById('keywordsChart'), {
+                type: 'bar',
+                data: keywordsData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
